@@ -1,0 +1,32 @@
+* {
+    box-sizing: border-box;
+    }
+      
+    body {
+        background-color: #2F2F2F;
+        opacity: 0.9;
+    }
+    
+    body,h1,h2,h3,h4,h5,h6 {
+        font-family: 'Viga', sans-serif;
+        color: #F5F5F5;
+        /* color: #E26313; */
+    }
+
+    
+.home_text {
+    padding-top: 15px;
+    padding-bottom: 10px;
+
+}
+.home_text1 {
+    padding-top: 55px;
+    padding-bottom: 0px;
+    font-size: 70px;
+
+}
+
+.webImg {
+    width: 390px;
+    height: 300px;
+}

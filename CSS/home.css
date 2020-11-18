@@ -1,0 +1,77 @@
+* {
+box-sizing: border-box;
+}
+  
+body {
+    background-color: #2F2F2F;
+    opacity: 0.9;
+}
+
+body,h1,h2,h3,h4,h5,h6 {
+    font-family: 'Viga', sans-serif;
+    color: #F5F5F5;
+    /* color: #E26313; */
+}
+
+.home_text {
+    padding-top: 15px;
+    padding-bottom: 10px;
+
+}
+.home_text1 {
+    padding-top: 55px;
+    padding-bottom: 0px;
+    font-size: 70px;
+
+}
+.status_image {
+    width:75px;
+    padding-bottom: 25px;
+}
+  
+  /* Float four columns side by side */
+  .column {
+    float: left;
+    width: 25%;
+    padding: 0 10px 20px;
+  }
+  
+  /* Remove extra left and right margins, due to padding */
+  .row {
+      margin: 0 0px;
+      /* padding: 10px; */
+      /* padding-left: 30px; */
+    }
+  
+  /* Clear floats after the columns */
+  .row:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+  
+  /* Responsive columns */
+  @media screen and (max-width: 600px) {
+    .column {
+      width: 100%;
+      display: block;
+      margin-bottom: 20px;
+    }
+  }
+  
+  /* Style the counter cards */
+  .card {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    padding: 16px;
+    /* padding-left: 20px; */
+    text-align: center;
+    background-color: #ce6c6c;
+
+    /* border-radius: 4px; */
+    opacity: 0.8;
+    transition: 0.3s;
+    /* display: inline-block; */
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .card:hover {opacity: 1}
