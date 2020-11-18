@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=utf-8 />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="/__/firebase/7.24.0/firebase-app.js"></script>
+  <script src="/__/firebase/7.24.0/firebase-auth.js"></script>
+  <script src="/__/firebase/init.js"></script>
+
+  <!--Bootstrap CSS CDN-->
+  <!-- <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
+        
+
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Viga&display=swap" rel="stylesheet">
+  <!-- <link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css"> -->
+
+  <link rel="stylesheet" href="css/login.css">
+  
+
+  <script type="text/javascript">
+    function toggleSignIn() {
+      if (firebase.auth().currentUser) {
+        firebase.auth().signOut();
+      } else {
+        var email = document.getElementById('email').value;
+        var password = document.getElementById('password').value;
+        if (email.length < 4) {
+          alert('Please enter an email address.');
+          return;
+        }
+        if (password.length < 4) {
+          alert('Please enter a password.');
+          return;
+        }
+        firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          if (errorCode === 'auth/wrong-password') {
+            alert('Wrong password.');
+          } else {
+            alert(errorMessage);
+          }
+          console.log(error);
+          document.getElementById('quickstart-sign-in').disabled = false;
+        });
+      }
+      document.getElementById('quickstart-sign-in').disabled = true;
+    }
+
+    function sendPasswordReset() {
+      var email = document.getElementById('email').value;
+      firebase.auth().sendPasswordResetEmail(email).then(function() {
+        alert('Password Reset Email Sent!');
+      }).catch(function(error) {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        if (errorCode == 'auth/invalid-email') {
+          alert(errorMessage);
+        } else if (errorCode == 'auth/user-not-found') {
+          alert(errorMessage);
+        }
+        console.log(error);
+      });
+    }
+
+    function initApp() {
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          var displayName = user.displayName;
+          var email = user.email;
+          var photoURL = user.photoURL;
+          var isAnonymous = user.isAnonymous;
+          var uid = user.uid;
+          var providerData = user.providerData;
+          //document.getElementById('quickstart-sign-in-status').textContent = 'Signed in';
+          document.getElementById('quickstart-sign-in').textContent = 'Sign out';
+          //document.getElementById('quickstart-account-details').textContent = email;
+
+          localStorage.setItem("uid", uid);
+          
+          //window.user = user
+
+          console.log("window.user")
+          console.log(window.user)
+          window.location = '/home.html';
+
+          //location.assign("/home.html")
+        } else {
+         // document.getElementById('quickstart-sign-in-status').textContent = 'Signed out';
+          document.getElementById('quickstart-sign-in').textContent = 'Sign in';
+          //document.getElementById('quickstart-account-details').textContent = 'null';
+        }
+        document.getElementById('quickstart-sign-in').disabled = false;
+      });
+      document.getElementById('quickstart-sign-in').addEventListener('click', toggleSignIn, false);
+      document.getElementById('quickstart-password-reset').addEventListener('click', sendPasswordReset, false);
+    }
+
+    window.onload = function() {
+      initApp();
+    };
+  </script>
+</head>
+<body>
+
+ 
+
+
+
+
+
+<div>
+  <!-- Navbar (sit on top) -->
+  <div class="w3-top w3-hide-small">
+    <!-- <div id="logo"><img src="img/fire.png" /></div> -->
+    <div class="w3-bar w3-xlarge" style = "height: 80px; background-color: #2F2F2F; opacity: 0.95;" id="myNavbar">
+      <a class="nav_text navbar-brand" href="index.html">
+        <img src="img/logo3.png" alt="Logo" style="width:50px; padding-top: 10px; padding-left: 5px;">
+      </a>
+      <!-- <a class="nav_text w3-bar-item w3-text">FireBuddy</a> -->
+    </div>
+  </div>
+
+  <div class="limiter">
+    <div class="container-login100">
+    <div class="wrap-login100 p-t-50 p-b-90">
+      <form class="login100-form validate-form flex-sb flex-w">
+      <span class="login100-form-title p-b-51">Login</span>
+      
+      <div class="wrap-input100 validate-input m-b-16" data-validate="Username is required">
+      <input class="input100" type="text" name="username" placeholder="Email" id="email">
+      <span class="focus-input100"></span>
+      </div>
+
+      <div class="wrap-input100 validate-input m-b-16" data-validate="Password is required">
+      <input class="input100" type="password" name="pass" placeholder="Password" id="password">
+      <span class="focus-input100"></span>
+      </div>
+
+      <div class="flex-sb-m w-full p-t-3 p-b-24">
+      
+      <div>
+      <a href="#" class="txt1" id="quickstart-password-reset">Forgot?</a>
+      </div>
+
+      </div>
+      
+      <div class="container-login100-form-btn m-t-17">
+      <button class="login100-form-btn" id="quickstart-sign-in">Login</button>
+      </div>
+      
+      </form>
+    </div>
+    </div>
+    </div>
+
+
+<!-- 
+  <main class="mdl-layout__content mdl-color--grey-100">
+    <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
+
+      <div class="mdl-card mdl-shadow--2dp mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
+        <div class="mdl-card__title mdl-color--light-blue-600 mdl-color-text--white">
+          <h2 class="mdl-card__title-text">Fire Logs</h2>
+        </div>
+        <div class="mdl-card__supporting-text mdl-color-text--grey-600">
+
+          <input class="mdl-textfield__input" style="display:inline;width:auto;" type="text" id="email" name="email" placeholder="Email"/>
+          &nbsp;&nbsp;&nbsp;
+          <input class="mdl-textfield__input" style="display:inline;width:auto;" type="password" id="password" name="password" placeholder="Password"/>
+          <br/><br/>
+          <button disabled class="mdl-button mdl-js-button mdl-button--raised" id="quickstart-sign-in" name="signin">Sign In</button>
+          &nbsp;&nbsp;&nbsp;
+          <button class="mdl-button mdl-js-button mdl-button--raised" id="quickstart-password-reset" name="verify-email">Send Password Reset Email</button>
+
+          
+        </div>
+      </div>
+
+    </div>
+  </main> -->
+</div>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 Google Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+<head>
+  <meta charset=utf-8 />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FireBuddy Home</title>
+
+  <!-- Material Design Theming -->
+  <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.orange-indigo.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Viga&display=swap" rel="stylesheet">
+
+
+  <!-- <link rel="stylesheet" href="main.css"> -->
+
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="/__/firebase/7.24.0/firebase-app.js"></script>
+  <script src="/__/firebase/7.24.0/firebase-auth.js"></script>
+  <script src="/__/firebase/8.0.0/firebase-firestore.js"></script>
+
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+  <script src="/__/firebase/7.24.0/firebase-analytics.js"></script>
+
+  <!-- Initialize Firebase -->
+  <script src="/__/firebase/init.js"></script>
+  <link rel="stylesheet" href="css/home.css">
+
+  <!-- <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script> -->
+  
+  <script>
+
+    function sensorClicked(sensor_num, sensor_id, sensor_status, sensor_location){
+      console.log(sensor_location);
+      console.log("testing Onclick");
+      localStorage.setItem("sensor_num", sensor_num);
+      localStorage.setItem("sensor_id", sensor_id);
+      localStorage.setItem("sensor_status", sensor_status);
+      localStorage.setItem("sensor_location", sensor_location);
+      window.location = '/sensor.html';
+    }
+
+
+    //Step 1: this method is called after the first init call
+      //Step 2: For loop through the different sensors and get the sensor bio stuff
+      // Add to an array that will store it
+      //Step 3: Print items on the screen for people to see (with button to see stuff)
+      
+      //Step 4: Add onclick ids to all items
+      //Step 5: Add ids to sessionStorage/localStorage so the next page can also get it with details
+      //Step 6: move to next page 
+      
+
+    function populateSensorInfo(sensorData) {
+      //Main function that will handle sensor info stuff
+      console.log(sensorData.textContent);
+      var db = firebase.firestore();
+      const userid = firebase.auth().currentUser.uid;
+      
+
+      //Start with html elements:
+      var sensors_div = document.createElement('div');
+      sensors_div.id = 'row_block';
+      sensors_div.className = 'row';
+
+      let i = 0;
+
+      //for (let key = tempDoc.length-1; key >= 0; key--) {
+      Object.keys(sensorData).forEach(function(key) {
+        //Get sensor info for each individual sensor
+        
+        const docString_SensorInfo = "users/" + String(userid) + "/" + sensorData[key] + "/sensor_info";
+        const docRef_info = db.doc(docString_SensorInfo);
+
+        //create individual sensor div
+        let sensor_div = document.createElement('div');
+        sensor_div.id = 'sensor'+ String(i);
+        sensor_div.className = 'card';
+
+        let sensor_column = document.createElement('div');
+        sensor_column.id = "column_id" + String(i);
+        sensor_column.className = 'column';
+
+        //Retreive items if it exists
+        docRef_info.get().then(function(doc){
+          if(doc && doc.exists) {
+            let sensor_info = doc.data();
+            console.log(sensor_info);
+            let event_status = (typeof sensor_info["event_status"] !== 'undefined') ?  sensor_info["event_status"] : "None Listed";
+            let id_tag = (typeof sensor_info["sensor_id"] !== 'undefined') ?  sensor_info["sensor_id"] : "None Listed";
+            let location = (typeof sensor_info["location"] !== 'undefined') ?  sensor_info["location"] : "None Listed";
+            let mrf_id = (typeof sensor_info["mrf_id"] !== 'undefined') ?  sensor_info["mrf_id"] : "None Listed";
+            
+            //sensor num
+            let sensor_num = document.createElement("h4");                       
+            let t = document.createTextNode(location);      
+            sensor_num.appendChild(t);
+            
+            
+            //Image
+            let image_status = document.createElement("img");
+            image_status.className = "status_image"
+
+            
+            let t2_text = "hello"
+            if (event_status == "false") {
+              image_status.src = "img/sensor_good.png";
+              sensor_div.style.backgroundColor = "#F5F5F5"
+              sensor_div.style.color = "#2F2F2F"
+              sensor_num.style.color = "#2F2F2F"
+              t2_text = "Functioning as expected"
+            } else {
+              image_status.src = "img/sensor_issue.png";
+              t2_text = "Issue reported, take action!"
+            }
+            
+            sensor_div.appendChild(sensor_num);
+            sensor_div.appendChild(image_status);
+            
+
+
+            //Sensor Id
+            let sensor_id = document.createElement("p");                       
+            let t1 = document.createTextNode("Sensor ID: " + id_tag);      
+            sensor_id.appendChild(t1);
+            sensor_div.appendChild(sensor_id);
+            //sensor event status
+            let sensor_status = document.createElement("p");                      
+            let t2 = document.createTextNode(t2_text);
+            sensor_status.appendChild(t2);
+            sensor_div.appendChild(sensor_status);
+            // //Sensor location
+            // let sensor_location = document.createElement("p");                       
+            // let t3 = document.createTextNode("Location of Sensor: " + location);      
+            // sensor_location.appendChild(t3);
+            // sensor_div.appendChild(sensor_location);
+
+            
+            sensor_column.appendChild(sensor_div)
+
+
+            sensor_column.onclick = function() {sensorClicked(key, id_tag, event_status, location);};
+
+          } 
+        }).catch(function (error) {
+          console.log("Got an error: "+ error);
+        });
+        
+
+        sensors_div.appendChild(sensor_column);
+      });
+      
+      document.getElementsByTagName('body')[0].appendChild(sensors_div);
+    }
+
+    function signOut(){
+      console.log(firebase.auth().currentUser)
+      if (firebase.auth().currentUser) {
+        firebase.auth().signOut();
+        localStorage.clear();
+      }      
+    }
+
+    function initApp() {
+      console.log("Starting up on the init");
+      console.log(firebase.auth().currentUser)
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          console.log("User is signed in");
+          var email = user.email;
+          console.log(email);
+
+          var db = firebase.firestore();
+          const userid = localStorage.getItem("uid");
+          const docString = "users/" + String(userid);
+          const docRef_sensors = db.doc(docString);
+          
+          console.log("Here why not");
+          
+          docRef_sensors.get().then(function(doc){
+            if(doc && doc.exists) {
+              let sensorData = doc.data();
+              console.log(sensorData);
+              populateSensorInfo(sensorData);
+            } 
+          }).catch(function (error) {
+            console.log("Got an error: "+ error);
+          });
+
+
+        } else {
+          console.log("User is signed out");
+          window.location = '/login.html';
+
+        }
+      });
+    } 
+
+    window.onload = function() {
+      initApp();
+    };
+
+  </script>
+
+</head>
+<body>
+
+<!-- Navbar (sit on top) -->
+<div class="w3-top w3-hide-small">
+  <!-- <div id="logo"><img src="img/fire.png" /></div> -->
+
+  <div class="w3-bar w3-xlarge" style = "height: 80px; background-color: #2F2F2F; opacity: 0.95;" id="myNavbar">
+    
+    <a class="nav_text navbar-brand" href="index.html">
+      
+      <img src="img/logo3.png" alt="Logo" style="width:52px; padding-top: 10px; padding-left: 5px;">
+    </a>
+    <button class="nav_text w3-bar-item w3-right w3-button" id="sign-out-btn" style="padding-top: 15px; padding-bottom: 15px; font-size: 25px; text-align: right;" onclick="signOut()">Sign Out</button>
+
+  </div>
+</div>
+
+<h1 class = "home_text1" style="text-align: center;">FireBuddy</h1>
+
+<h1 class = "home_text" style="text-align: center;">MRF Home</h1>
+
+<!-- <button id="sign-out-btn" name="sign-out" onclick="signOut()">Sign Out</button> -->
+
+
+
+</body>
+</html>

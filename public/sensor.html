@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2016 Google Inc.
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
+<html>
+<head>
+  <meta charset=utf-8 />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FireBuddy Sensor</title>
+
+  <!-- Material Design Theming -->
+  <link rel="stylesheet" href="https://code.getmdl.io/1.1.3/material.orange-indigo.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script defer src="https://code.getmdl.io/1.1.3/material.min.js"></script>
+
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Viga&display=swap" rel="stylesheet">
+
+  <!-- <link rel="stylesheet" href="main.css"> -->
+
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="/__/firebase/7.24.0/firebase-app.js"></script>
+  <script src="/__/firebase/7.24.0/firebase-auth.js"></script>
+  <script src="/__/firebase/8.0.0/firebase-firestore.js"></script>
+  <script src="/__/firebase/8.0.1/firebase-storage.js"></script>
+
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+  <script src="/__/firebase/7.24.0/firebase-analytics.js"></script>
+
+  <!-- Initialize Firebase -->
+  <script src="/__/firebase/init.js"></script>
+  <link rel="stylesheet" href="css/sensor.css">
+  <!-- <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-firestore.js"></script> -->
+  
+  <script>
+
+    function timeConverter(UNIX_timestamp){
+      var a = new Date(UNIX_timestamp * 1000);
+      var b = a.toString()
+      console.log(b)
+      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var year = a.getFullYear();
+      var month = months[a.getMonth()];
+      var date = a.getDate();
+      var hour = a.getHours();
+      var min = a.getMinutes();
+      var sec = a.getSeconds();
+      var time = date + ' ' + month + ' ' + hour + ':' + min + ':' + sec ;
+      return time;
+    }
+
+    function setLogs(event_num, tempDoc) {
+        console.log("setLogs")
+        // console.log(tempDoc[0]["id"]);
+        var events_div = document.createElement('div');
+        events_div.id = 'logs_div';
+        events_div.className = 'logs_div';
+
+
+
+        var logs_ul = document.createElement('ul');
+        logs_ul.id = 'logs_ul';
+        logs_ul.className = 'logs_ul';
+
+        let temp = (typeof tempDoc["temp"] !== 'undefined') ?  tempDoc["temp"] : "None Listed";
+        let avgtemp = (typeof tempDoc["avgtemp"] !== 'undefined') ?  tempDoc["avgtemp"] : "None Listed";
+        let datetime = (typeof tempDoc["timestamp"] !== 'undefined') ?  timeConverter(tempDoc["timestamp"]) : "None Listed";
+
+        
+        
+        console.log(tempDoc["timestamp"]);
+
+        let outer_li = document.createElement("li"); 
+
+        // let log_header = document.createElement("h5");
+        // log_header.className="log_num"
+        // log_header.appendChild(document.createTextNode(event_num))
+        
+        let log_temps = document.createElement("p");
+        log_temps.className = "log_text"
+        log_temps.appendChild(document.createTextNode("Avg. Temp: " + avgtemp));
+
+        let log_temps1 = document.createElement("p");
+        log_temps1.className = "log_text"
+        log_temps1.appendChild(document.createTextNode("Max Temp: " + temp ));
+        
+        let log_datetime = document.createElement("p");
+        log_datetime.className = "log_text"
+        log_datetime.appendChild(document.createTextNode("Timestamp:" + datetime));
+
+        // outer_li.appendChild(log_header);
+        outer_li.appendChild(log_temps);
+        outer_li.appendChild(log_temps1);
+        outer_li.appendChild(log_datetime);
+        logs_ul.appendChild(outer_li);
+
+
+        events_div.append(logs_ul);
+        document.getElementById('logs_div').innerHTML = events_div.innerHTML;
+
+    }
+    function liveViewPage() {
+      window.location = '/live.html';
+      
+    }
+
+    function resetAlert() {
+
+      const user_id = localStorage.getItem("uid");
+      const sensor_id = localStorage.getItem("sensor_id");
+
+      const logs = firebase.firestore().collection('users/' + user_id + '/' + sensor_id).doc("sensor_info");
+
+        // var docRef = firebase.firestore()("cities").doc("SF");
+
+      logs.get().then(function(doc) {
+          if (doc.exists) {
+
+
+              console.log("Document data:", doc.data());
+
+              dict1 = doc.data()
+              if (dict1["event_status"] == "true") {
+                dict2 = dict1;
+                dict2["event_status"] = "false";
+                logs.update({
+                    event_counter: dict1["event_counter"],
+                    event_status: "false",
+                    liveView: "gs://firebuddy-f7eb3.appspot.com/live.jpg",
+                    location: dict1["location"],
+                    mrf_id: dict1["event_status"],
+                    sensor_id: dict1["sensor_id"]
+                })
+                .then(function() {
+                    console.log("Document successfully updated!");
+                })
+                .catch(function(error) {
+                    // The document probably doesn't exist.
+                    console.error("Error updating document: ", error);
+                });
+
+
+              }
+
+
+          } else {
+              // doc.data() will be undefined in this case
+              console.log("No such document!");
+          }
+      }).catch(function(error) {
+          console.log("Error getting document:", error);
+      });
+
+
+
+    }
+
+    function setImageLogs(tempDoc) {
+
+
+        //for (let step = tempDoc.length-1; step >= 0; step--) {
+        //Get the id of each event
+        current_obj = tempDoc;
+        
+        // let object_id = (typeof current_obj["id"] !== 'undefined') ?  current_obj["id"] : "None Listed";
+        let link = (typeof current_obj["im_link"] !== 'undefined') ?  current_obj["im_link"] : "https://storage.googleapis.com/firebuddy-f7eb3.appspot.com/lepton2020-11-17%2021%3A31%3A09.818521.jpg";
+        let temp_link = (typeof current_obj["thermal_link"] !== 'undefined') ?  current_obj["thermal_link"] : "https://storage.googleapis.com/firebuddy-f7eb3.appspot.com/lepton2020-11-17%2021%3A31%3A09.818521.jpg";
+        let datetime = (typeof current_obj["timestamp"] !== 'undefined') ?  timeConverter(current_obj["timestamp"]) : "None Listed";
+        
+        //sensor num
+
+        var storage = firebase.storage();
+        var httpsReference = storage.refFromURL(link);
+
+        httpsReference.getDownloadURL().then(function(url1) { 
+
+          var storage = firebase.storage();
+          var httpsReference1 = storage.refFromURL(temp_link);
+          httpsReference1.getDownloadURL().then(function(url2) {
+
+            var all_imgLogs =  document.createElement('div');
+            all_imgLogs.id = 'imlogs_div';
+            all_imgLogs.className = 'imlogs_div';
+                        
+            
+            var events_div_img = document.createElement('div');
+            events_div_img.id = 'imlogs_div1';
+            events_div_img.className = 'imlogs_div1 column1 left1';
+            
+            let link_img = document.createElement("img");
+            link_img.className = "webImg";
+            link_img.src = url2;
+            let link_text = document.createElement("h3");
+            link_text.appendChild(document.createTextNode("Camera Image:"));
+            events_div_img.append(link_text);
+            events_div_img.append(link_img);
+
+            var lepton_div_img = document.createElement('div');
+            lepton_div_img.id = 'imlogs_div2';
+            lepton_div_img.className = 'imlogs_div2 column1 right1';
+
+            let link_img_lep = document.createElement("img");
+            link_img_lep.className = "webImg";
+            link_img_lep.src = url1;
+            let lep_text = document.createElement("h3");
+            lep_text.appendChild(document.createTextNode("Thermal Image:"));
+            lepton_div_img.append(lep_text);
+            lepton_div_img.append(link_img_lep);
+
+
+
+            let datetime_ob = document.createElement("p"); 
+            let t2 = document.createTextNode(datetime);
+            datetime_ob.appendChild(t2);
+
+            all_imgLogs.append(events_div_img);
+            all_imgLogs.append(lepton_div_img);
+            all_imgLogs.append(datetime_ob);
+
+
+
+            document.getElementById('imlogs_div').innerHTML = all_imgLogs.innerHTML;
+
+          }).catch(function(error) {
+            console.log("Got an error: "+ error);
+         // Handle any errors
+        });
+
+
+            
+        }).catch(function(error) {
+            console.log("Got an error: "+ error);
+         // Handle any errors
+        });
+
+        
+    }    
+
+
+
+    function showEvent(event_num) {
+        
+        let event_text = document.createElement("h4"); 
+        event_text.appendChild(document.createTextNode(event_num + " Logs:"));
+        document.getElementById('curr_event').innerHTML = event_text.innerHTML;
+
+        //get all items from firebase on this item and display:
+        console.log(event_num);
+        const user_id = localStorage.getItem("uid");
+        const sensor_id = localStorage.getItem("sensor_id");
+
+        const logs = firebase.firestore().collection('users/' + user_id + '/' + sensor_id).doc(event_num);
+
+        // var docRef = firebase.firestore()("cities").doc("SF");
+
+        logs.get().then(function(doc) {
+            if (doc.exists) {
+                console.log("Document data:", doc.data());
+                setLogs(event_num, doc.data());
+                setImageLogs(doc.data());
+
+            } else {
+                // doc.data() will be undefined in this case
+                console.log("No such document!");
+            }
+        }).catch(function(error) {
+            console.log("Error getting document:", error);
+        });
+        
+        // logs.get().then((querySnapshot) => {
+        //     const tempDoc = []
+        //     querySnapshot.forEach((doc) => {
+        //         tempDoc.push({ id: doc.id, ...doc.data() })
+        //     })
+        //     console.log("logs");
+        //     console.log(tempDoc);
+        //     setLogs(tempDoc);
+        //     setImageLogs(tempDoc);
+        // });  
+
+        // imLogs.get().then((querySnapshot) => {
+        //     const tempDoc2 = []
+        //     querySnapshot.forEach((doc) => {
+        //         tempDoc2.push({ id: doc.id, ...doc.data() })
+        //     })
+        //     console.log("Image logs");
+        //     console.log(tempDoc2);
+        //     setImageLogs(tempDoc2);
+            
+        // });
+
+    }
+
+    function getEventsInfo(eventsArray) {
+        var array_events = [];
+
+        for (let step = eventsArray.length-2; step >= 0; step--) {
+            //Get the id of each event
+            current_obj = eventsArray[step];
+            object_id = current_obj["id"];
+            array_events.push(String(object_id));
+        }
+
+        let last_item = array_events[0];
+
+        var num_count = array_events.length;
+
+        var events_div = document.createElement('div');
+        events_div.id = 'list_div';
+        events_div.className = 'list';
+        
+        var events_list = document.createElement('ul');
+        events_list.id = 'events_list';
+        events_list.className = 'list_event';
+
+        
+        for (let step2 = 0; step2 < array_events.length; step2++) {
+            let list_event = document.createElement("button");
+            list_event.className = "event-btn"  
+            list_event.onclick = function() {showEvent(array_events[step2])};
+            let t = document.createTextNode(array_events[step2]); 
+            console.log(array_events[step2])     
+            list_event.appendChild(t);
+            events_list.appendChild(list_event);
+
+            
+        }
+        events_div.appendChild(events_list);
+        document.getElementById("event_list").appendChild(events_div);
+        // document.getElementsByTagName('body')[0].appendChild(events_div);
+
+        showEvent(last_item);
+    }
+
+
+
+
+    function nest() {
+        var array_events = [];
+        const user_id = localStorage.getItem("uid");
+        const sensor_id = localStorage.getItem("sensor_id");
+        const location_text = localStorage.getItem("sensor_location");
+
+        
+        document.getElementById("sensor_title").innerHTML = location_text
+        const events = firebase.firestore().collection('users/' + user_id + '/' + sensor_id);
+        events.get().then((querySnapshot) => {
+            const tempDoc = []
+            querySnapshot.forEach((doc) => {
+                tempDoc.push({ id: doc.id, ...doc.data() })
+            })
+            getEventsInfo(tempDoc);
+
+        });        
+        
+    }
+
+    function signOut(){
+      console.log(firebase.auth().currentUser)
+      if (firebase.auth().currentUser) {
+        firebase.auth().signOut();
+        localStorage.clear();
+      }      
+    }
+
+    function initApp() {
+      console.log("Starting up on the init");
+      console.log(firebase.auth().currentUser)
+
+      firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+          console.log("User is signed in");
+          var email = user.email;
+          console.log(email);
+
+          //Display Basic Sensor info HERE:
+
+          //Get all events stuff
+          var db = firebase.firestore();
+          const userid = localStorage.getItem("uid");
+          const sensor_id = localStorage.getItem("sensor_id");
+          const docString = "users/" + String(userid) + "/" + String(userid);
+          
+          // let sensor_text = document.createElement("h4"); 
+          // sensor_text.appendChild(document.createTextNode(sensor_id));
+          // document.getElementById('sensor_text').innerHTML = sensor_text.innerHTML;
+          
+          nest(docString);
+          
+
+        } else {
+          console.log("User is signed out");
+          window.location = '/login.html';
+
+        }
+      });
+    } 
+
+    window.onload = function() {
+      initApp();
+    };
+
+  </script>
+
+</head>
+<body>
+
+    <!-- Navbar (sit on top) -->
+<div class="w3-top w3-hide-small">
+    <!-- <div id="logo"><img src="img/fire.png" /></div> -->
+  
+    <div class="w3-bar w3-xlarge" style = "height: 80px; background-color: #2F2F2F; opacity: 0.95;" id="myNavbar">
+      
+      <a class="nav_text navbar-brand" href="index.html">
+        
+        <img src="img/logo3.png" alt="Logo" style="width:52px; padding-top: 10px; padding-left: 5px;">
+      </a>
+      <button class="nav_text w3-bar-item w3-right w3-button" id="sign-out-btn" style="padding-top: 15px; padding-bottom: 15px; font-size: 25px; text-align: right;" onclick="signOut()">Sign Out</button>
+  
+    </div>
+</div>
+  
+<h1 class = "home_text1" style="text-align: center;">FireBuddy</h1>
+
+
+
+<h1 id="sensor_title" style = "padding-left: 10px;"></h1>
+
+<!-- <button id="sign-out-btn" name="sign-out" onclick="signOut()">Sign Out</button> -->
+
+<div class="row">
+    <div class="column left" >
+
+      <div id = "event_list">
+        <h3>Select Event:</h3>
+
+      </div>
+  
+      <div style="text-align: center;">
+        <button class="live_btn" onclick= "liveViewPage()">Live View</button>
+        <button class="live_btn" onclick= "resetAlert()">Reset Alert</button>
+      </div>
+
+    </div>
+    
+
+    
+
+    <div class="column right" >
+      <div>
+        <h3 id="curr_event"></h4>
+        <!-- <h4 id="sensor_text">Sensor id Y</h4> -->
+        <div id="logs_div">logs</div>
+      </div>
+        <div id="imlogs_div" style = "padding-left: 25px; margin-right: 25px;"></div>
+        
+        
+    </div>
+</div>
+  
+
+  <!-- Place the script below at the bottom of the body -->
+  
+<!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script> -->
+
+
+  
+
+</body>
+
+</html>
